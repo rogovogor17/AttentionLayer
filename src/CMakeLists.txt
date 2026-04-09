@@ -1,7 +1,7 @@
 #CMakeLists.txt for source files
 
 target_sources(implementation
-	PUBLIC utils.cpp
+	PUBLIC attention.cpp
 )
 
 target_include_directories(implementation PUBLIC ${CMAKE_SOURCE_DIR}/include)
