@@ -2,11 +2,9 @@
 
 #include "tensor.hpp"
 
-int main(int argc, char** argv) {
-    if (argc > 1)
-        std::cout << argv[1] << std::endl;
-    else
-        std::cout << "Hello, world!" << std::endl;
-
+int main() {
+    Tensor<float> tnr;
+    tnr.setShape({1, 2, 3});
+    tnr.print();
     return 0;
 }
