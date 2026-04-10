@@ -76,21 +76,34 @@ class Data {
    public:
     Data() = default;
 
+    /** @param[in] size Size of data_ */
+    Data(size_t size) : data_(size) {}
+
     /** @brief Get current size of data */
     size_t size() const { return data_.size(); }
+
+    /** @brief Print data_ in special order */
+    void print() const {
+        std::cout << "data: { ";
+        for (auto elem : data_) {
+            std::cout << elem << "; ";
+        }
+        std::cout << "}" << std::endl;
+    }
 };
 
 /**
  * @class Tensor
  * @brief Main class for tensor
  *
+ * @details Class constructor needs tensor shape dimensions sizes.
  * Provided operations: add
  */
 template <typename T>
 class Tensor {
    private:
-    Shape shape_;  ///< Tensor shape information
-    Data<T> data;  ///< Tensor data
+    Shape shape_;   ///< Tensor shape information
+    Data<T> data_;  ///< Tensor data
 
     Tensor add(const Tensor& term) const {
         // Check dimensions
@@ -101,7 +114,7 @@ class Tensor {
 
    public:
     Tensor() = default;
-    Tensor(const Shape& shape) : shape_(shape) {}
+    Tensor(const Shape& shape) : shape_(shape), data_(shape_.getCount()) {}
 
     Tensor operator+(const Tensor& term) const { return add(term); }
     Tensor& operator+=(const Tensor& term) {
@@ -112,6 +125,9 @@ class Tensor {
     /** @brief Set new shape information about tensor */
     void setShape(const Shape& shape) { shape_ = shape; }
 
-    /** @brief Print rang of tensor and its shape information */
-    void print() { shape_.print(); }
+    /** @brief Print tensor shape and data information */
+    void print() {
+        shape_.print();
+        data_.print();
+    }
 };
