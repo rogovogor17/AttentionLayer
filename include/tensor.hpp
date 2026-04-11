@@ -8,7 +8,10 @@
  *
  * Usage Example:
  * @code{.cpp}
- * Tensor tnr;
+ *  Tensor<float> tnr;
+ *  tnr.setShape({1, 2, 3});
+ *  tnr.setData({1.0f, 2.28f, 3.22f, 4.43f, 5.52f, 6.66f});
+ *  tnr.print();
  * @endcode
  */
 
@@ -82,6 +85,9 @@ class Data {
     /** @brief Get current size of data */
     size_t size() const { return data_.size(); }
 
+    /** @brief Equate content of argument to member data_ */
+    void assign(std::initializer_list<T> data) { data_.assign(data); }
+
     /** @brief Print data_ in special order */
     void print() const {
         std::cout << "data: { ";
@@ -97,7 +103,6 @@ class Data {
  * @brief Main class for tensor
  *
  * @details Class constructor needs tensor shape dimensions sizes.
- * Provided operations: add
  */
 template <typename T>
 class Tensor {
@@ -105,25 +110,25 @@ class Tensor {
     Shape shape_;   ///< Tensor shape information
     Data<T> data_;  ///< Tensor data
 
-    Tensor add(const Tensor& term) const {
-        // Check dimensions
-        Tensor result;
-        // Addition
-        return result;
-    }
-
    public:
     Tensor() = default;
-    Tensor(const Shape& shape) : shape_(shape), data_(shape_.getCount()) {}
 
-    Tensor operator+(const Tensor& term) const { return add(term); }
-    Tensor& operator+=(const Tensor& term) {
-        // Addition with 'this' changes
-        return *this;
-    }
+    /** @param[in] shape Initializer list or vector of tensor shape dimension
+     *  sizes */
+    Tensor(const Shape& shape) : shape_(shape), data_(shape_.getCount()) {}
 
     /** @brief Set new shape information about tensor */
     void setShape(const Shape& shape) { shape_ = shape; }
+
+    /** @brief Set tensor data */
+    void setData(std::initializer_list<T> data) {
+        if (shape_.getCount() != data.size()) {
+            throw std::invalid_argument(
+                "The size of the tensor and the input data do not match");
+        }
+
+        data_.assign(data);
+    }
 
     /** @brief Print tensor shape and data information */
     void print() {

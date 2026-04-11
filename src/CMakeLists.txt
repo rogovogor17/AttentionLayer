@@ -1,7 +1,8 @@
 #CMakeLists.txt for source files
 
-target_sources(implementation
-	PUBLIC tensor.cpp
+target_sources(implementation PUBLIC
+	attention.cpp
+	matmul.cpp
 )
 
 target_include_directories(implementation PUBLIC ${CMAKE_SOURCE_DIR}/include)
