@@ -1,16 +1,10 @@
-#include <iostream>
+#include <vector>
 
-#include "matmul.hpp"
-#include "tensor.hpp"
+#include "matrix.hpp"
 
 int main() {
-    Tensor<float> tensor;
-    tensor.setShape({3, 3, 3});
-    tensor.setData({111, 112, 113, 121, 122, 123, 131, 132, 133,
-                    211, 212, 213, 221, 222, 223, 231, 232, 233,
-                    311, 312, 313, 321, 322, 323, 331, 332, 333});
-    tensor.print();
-
-    Matrix<float> matrix(3, 3, );
+    std::vector<float> values = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+    Matrix<float> A(3, 3, values.begin(), values.end());
+    A.dump();
     return 0;
 }

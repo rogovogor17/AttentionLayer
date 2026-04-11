@@ -2,7 +2,6 @@
 
 target_sources(implementation PUBLIC
 	attention.cpp
-	matmul.cpp
 )
 
 target_include_directories(implementation PUBLIC ${CMAKE_SOURCE_DIR}/include)
@@ -14,5 +13,6 @@ add_executable(${MAIN_TARGET}
 
 target_link_libraries(${MAIN_TARGET} PUBLIC implementation)
 target_include_directories(${MAIN_TARGET} PUBLIC ${CMAKE_SOURCE_DIR}/include)
+set_target_properties(${MAIN_TARGET} PROPERTIES CXX_INCLUDE_WHAT_YOU_USE "${IWYU_COMMAND}")
 target_compile_options(${MAIN_TARGET} PUBLIC ${FLAGS})
 target_link_options(${MAIN_TARGET} PUBLIC ${FLAGS})
