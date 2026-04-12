@@ -7,3 +7,5 @@
  * @details This module provides Attention function with different matmul
  * realizations
  */
+
+#pragma once

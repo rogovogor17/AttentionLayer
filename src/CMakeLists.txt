@@ -1,6 +1,6 @@
 #CMakeLists.txt for source files
 
-target_sources(implementation PUBLIC
+target_sources(implementation PRIVATE
 	attention.cpp
 )
 
@@ -11,8 +11,8 @@ add_executable(${MAIN_TARGET}
 	main.cpp
 )
 
-target_link_libraries(${MAIN_TARGET} PUBLIC implementation)
-target_include_directories(${MAIN_TARGET} PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(${MAIN_TARGET} PRIVATE implementation)
+target_include_directories(${MAIN_TARGET} PRIVATE ${CMAKE_SOURCE_DIR}/include)
 set_target_properties(${MAIN_TARGET} PROPERTIES CXX_INCLUDE_WHAT_YOU_USE "${IWYU_COMMAND}")
-target_compile_options(${MAIN_TARGET} PUBLIC ${FLAGS})
-target_link_options(${MAIN_TARGET} PUBLIC ${FLAGS})
+target_compile_options(${MAIN_TARGET} PRIVATE ${FLAGS})
+target_link_options(${MAIN_TARGET} PRIVATE ${FLAGS})

@@ -22,6 +22,6 @@ if(IWYU_PATH)
 	)
 endif()
 
-add_library(implementation)
+add_library(implementation STATIC)
 add_subdirectory(src)
 add_subdirectory(tests)
