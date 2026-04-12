@@ -8,9 +8,11 @@
  *
  * Usage Example:
  * @code{.cpp}
- * std::vector<float> values = {1, 2, 3, 4, 5, 6, 7, 8, 9};
- * Matrix<float> A(3, 3, values.begin(), values.end());
- * A.dump();
+ * Matrix<float> A = Matrix<float>::eye(3);
+ * Matrix<float> B(3, 3, 5);
+ * Matrix<float> C = naive_multiply(A, B);
+ * C[1][1] += C[0][0] * C[2][2];
+ * C.dump();
  * @endcode
  */
 
@@ -115,6 +117,16 @@ class Matrix {
                      std::make_move_iterator(end));
     }
 
+    /**
+     * @brief Static constructor of Identity Matrix
+     * @details Construct Identity Matrix with T{1} value
+     */
+    static Matrix<T> eye(int n) {
+        Matrix<T> I(n, n);
+        for (int i = 0; i < n; i++) I[i][i] = T{1};
+        return I;
+    }
+
     ProxyRow operator[](int n) { return at_row(n); }
     const ProxyRow operator[](int n) const { return at_row(n); }
 
@@ -124,7 +136,28 @@ class Matrix {
     /** @brief Get amount of Matrix rows */
     int nrows() const noexcept { return static_cast<int>(rows_); }
 
-    /** @brief Dump matrix to ostream. Default behavior - dump to std::cout*/
+    /** @brief Transpose Matrix */
+    Matrix& transpose() & {
+        std::vector<T> cp_data(data_);
+        for (int i = 0; i < rows_; i++) {
+            for (int j = 0; j < cols_; j++) {
+                data_[static_cast<size_t>(j * rows_ + i)] =
+                    cp_data[static_cast<size_t>(i * cols_ + j)];
+            }
+        }
+        std::swap(rows_, cols_);
+        return *this;
+    }
+
+    /** @brief Transpose constant Matrix */
+    Matrix transpose() const& {
+        Matrix transposeMatrix = *this;
+        transposeMatrix.transpose();
+        return transposeMatrix;
+    }
+
+    /** @brief Dump matrix to ostream. Default behavior - dump to
+       std::cout*/
     void dump(std::ostream& os = std::cout) {
         for (int i = 0; i < rows_; i++) {
             for (int j = 0; j < cols_; j++) {
@@ -135,17 +168,63 @@ class Matrix {
     }
 };
 
+/**
+ * @brief Performs naive O(n³) matrix multiplication.
+ *
+ * @tparam T Matrix element type (must support += and * operators)
+ * @param A Left matrix (m × k)
+ * @param B Right matrix (k × n)
+ * @return Matrix<T> Result matrix C (m × n) where C[i][j] = Σ A[i][k] * B[k][j]
+ *
+ * @throws std::invalid_argument If A.ncols() != B.nrows()
+ */
 template <typename T>
 Matrix<T> naive_multiply(const Matrix<T>& A, const Matrix<T>& B) {
     if (A.ncols() != B.nrows())
         throw std::invalid_argument("Invalid matrixes for multiplying");
-
     Matrix<T> C(A.nrows(), B.ncols());
 
     for (int i = 0; i < C.nrows(); i++) {
         for (int j = 0; j < C.ncols(); j++) {
             for (int k = 0; k < A.ncols(); k++) {
                 C[i][j] += A[i][k] * B[k][j];
+            }
+        }
+    }
+
+    return C;
+}
+
+/**
+ * @brief Performs cached O(n³) matrix multiplication.
+ *
+ * @tparam T Matrix element type (must support += and * operators)
+ * @param A Left matrix (m × k)
+ * @param B Right matrix (k × n)
+ * @param bs Size of block that matrix is divided
+ * @return Matrix<T> Result matrix C (m × n)
+ *
+ * @throws std::invalid_argument If A.ncols() != B.nrows()
+ */
+template <typename T>
+Matrix<T> cached_multiply(const Matrix<T>& A, const Matrix<T>& B, int bs = 32) {
+    if (A.ncols() != B.nrows())
+        throw std::invalid_argument("Invalid matrix sizes");
+
+    int M = A.nrows(), N = B.ncols(), K = A.ncols();
+    Matrix<T> C(M, N);
+    Matrix<T> Bt = B.transpose();
+
+    for (int ii = 0; ii < M; ii += bs) {
+        for (int jj = 0; jj < N; jj += bs) {
+            for (int kk = 0; kk < K; kk += bs) {
+                for (int i = ii; i < std::min(ii + bs, M); i++) {
+                    for (int k = kk; k < std::min(kk + bs, K); k++) {
+                        T A_ik = A[i][k];
+                        for (int j = jj; j < std::min(jj + bs, N); j++)
+                            C[i][j] += A_ik * Bt[j][k];
+                    }
+                }
             }
         }
     }
