@@ -158,7 +158,7 @@ class Matrix {
 
     /** @brief Dump matrix to ostream. Default behavior - dump to
        std::cout*/
-    void dump(std::ostream& os = std::cout) {
+    void dump(std::ostream& os = std::cout) const {
         for (int i = 0; i < rows_; i++) {
             for (int j = 0; j < cols_; j++) {
                 os << data_[static_cast<size_t>(i * cols_ + j)] << " ";

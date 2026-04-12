@@ -1,14 +1,12 @@
-#include <vector>
+#include <fstream>
 
-#include "matrix.hpp"
+#include "tensor3d.hpp"
 
 int main() {
-    Matrix<float> A = Matrix<float>::eye(3);
-    std::vector<float> values = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-    Matrix<float> B(3, 3, values.begin(), values.end());
-
-    Matrix<float> C = naive_multiply(A, B);
-    Matrix<float> D = cached_multiply(A, B);
-
+    Tensor3D<float> Q(32, 8, 64);
+    Tensor3D<float> K(32, 16, 64);
+    Tensor3D<float> V(32, 16, 32);
+    std::ofstream log("log.log");
+    Q.dump(log);
     return 0;
 }
