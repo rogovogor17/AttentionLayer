@@ -32,9 +32,8 @@
 template <typename T>
 class Matrix {
    private:
-    using index_t = int;
-    index_t rows_ = 0;     ///< Amount of matrix rows
-    index_t cols_ = 0;     ///< Amount of matrix columns
+    int rows_ = 0;         ///< Amount of matrix rows
+    int cols_ = 0;         ///< Amount of matrix columns
     std::vector<T> data_;  ///< Matrix templated data
 
     /**
@@ -44,11 +43,11 @@ class Matrix {
      */
     class ProxyRow {
        private:
-        T* row_;        ///< Pointer to T type row in matrix
-        index_t size_;  ///< Size of row in matrix
+        T* row_;    ///< Pointer to T type row in matrix
+        int size_;  ///< Size of row in matrix
 
         /**
-         * @brief Returning element with position n in row
+         * @brief Check position n of element in row
          * @throws std::out_of_range In case of going beyond the row boundary in
          * the matrix
          */
@@ -59,7 +58,7 @@ class Matrix {
         }
 
        public:
-        ProxyRow(T* row, index_t size) : row_(row), size_(size) {};
+        ProxyRow(T* row, int size) : row_(row), size_(size) {};
         const T& operator[](int n) const { return at(n); }
         T& operator[](int n) { return at(n); }
     };
@@ -71,7 +70,8 @@ class Matrix {
     ProxyRow at_row(int n) const {
         if (n < 0 || n >= rows_)
             throw std::out_of_range("Invalid indexing to matrix row");
-        return ProxyRow(&data_[n * cols_], cols_);
+        return ProxyRow(const_cast<T*>(&data_[static_cast<size_t>(n * cols_)]),
+                        cols_);
     }
 
    public:
@@ -85,16 +85,14 @@ class Matrix {
      * matrix elements.
      */
     Matrix(int rows, int cols, T val = T{})
-        : rows_(static_cast<index_t>(rows)),
-          cols_(static_cast<index_t>(cols)),
-          data_() {
+        : rows_(rows), cols_(cols), data_() {
         if (rows <= 0 || cols <= 0)
             throw std::invalid_argument("Invalid sizes to create matrix");
 
-        if (rows_ * cols_ >= data_.max_size())
+        if (static_cast<size_t>(rows_ * cols_) >= data_.max_size())
             throw std::length_error("Matrix sizes are too large");
 
-        data_.assign(rows_ * cols_, val);
+        data_.assign(static_cast<size_t>(rows_ * cols_), val);
     }
 
     /**
@@ -130,7 +128,7 @@ class Matrix {
     void dump(std::ostream& os = std::cout) {
         for (int i = 0; i < rows_; i++) {
             for (int j = 0; j < cols_; j++) {
-                os << data_[i * cols_ + j] << " ";
+                os << data_[static_cast<size_t>(i * cols_ + j)] << " ";
             }
             os << std::endl;
         }
