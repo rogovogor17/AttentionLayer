@@ -83,6 +83,33 @@ class Tensor3D {
         data_ = matrices;
     }
 
+    /**
+     * @brief Constructor with random initialization for all matrices
+     * @param min_val Minimum random value (inclusive)
+     * @param max_val Maximum random value (inclusive)
+     */
+    Tensor3D(int batch, int rows, int cols, T min_val, T max_val)
+        : batch_(batch), rows_(rows), cols_(cols) {
+        if (batch <= 0 || rows <= 0 || cols <= 0)
+            throw std::invalid_argument("Tensor dimensions must be positive");
+
+        if (min_val > max_val)
+            throw std::invalid_argument("min_val must be <= max_val");
+
+        data_.reserve(static_cast<size_t>(batch));
+        for (int b = 0; b < batch; b++)
+            data_.emplace_back(rows, cols, min_val, max_val);
+    }
+
+    /**
+     * @brief Fill entire tensor with random values
+     * @param min_val Minimum random value
+     * @param max_val Maximum random value
+     */
+    void fill_random(T min_val, T max_val) {
+        for (auto& mat : data_) mat.fill_random(min_val, max_val);
+    }
+
     /** @brief Get amount of Matrix in Tensor3D */
     int batch() const noexcept { return batch_; }
 

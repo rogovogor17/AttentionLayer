@@ -9,7 +9,7 @@
  * Usage Example:
  * @code{.cpp}
  * Matrix<float> A = Matrix<float>::eye(3);
- * Matrix<float> B(3, 3, 5);
+ * Matrix<float> B(3, 3, -100.0f, 100.0f);
  * Matrix<float> C = naive_multiply(A, B);
  * C[1][1] += C[0][0] * C[2][2];
  * C.dump();
@@ -20,9 +20,11 @@
 
 #include <stddef.h>
 
+#include <chrono>
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <random>
 #include <stdexcept>
 #include <vector>
 
@@ -37,6 +39,12 @@ class Matrix {
     int rows_ = 0;         ///< Amount of matrix rows
     int cols_ = 0;         ///< Amount of matrix columns
     std::vector<T> data_;  ///< Matrix templated data
+
+    static std::mt19937& get_generator() {
+        static std::mt19937 gen(static_cast<uint>(
+            std::chrono::steady_clock::now().time_since_epoch().count()));
+        return gen;
+    }
 
     /**
      * @class ProxyRow
@@ -115,6 +123,48 @@ class Matrix {
 
         data_.assign(std::make_move_iterator(begin),
                      std::make_move_iterator(end));
+    }
+
+    /**
+     * @brief Constructor with random initialization
+     * @param min_val Minimum random value (inclusive)
+     * @param max_val Maximum random value (inclusive)
+     * @throws std::invalid_argument If rows/cols <= 0 or min_val > max_val
+     */
+    Matrix(int rows, int cols, T min_val, T max_val)
+        : rows_(rows), cols_(cols), data_() {
+        if (rows <= 0 || cols <= 0)
+            throw std::invalid_argument("Invalid sizes to create matrix");
+        if (min_val > max_val)
+            throw std::invalid_argument("min_val must be <= max_val");
+
+        if (static_cast<size_t>(rows_ * cols_) >= data_.max_size())
+            throw std::length_error("Matrix sizes are too large");
+
+        data_.resize(static_cast<size_t>(rows_ * cols_));
+        fill_random(min_val, max_val);
+    }
+
+    /**
+     * @brief Fill matrix with random values in range [min_val, max_val]
+     * @throws std::invalid_argument If min_val > max_val
+     */
+    void fill_random(T min_val, T max_val) {
+        if (min_val > max_val)
+            throw std::invalid_argument("min_val must be <= max_val");
+
+        if constexpr (std::is_integral_v<T>) {
+            std::uniform_int_distribution<T> dist(min_val, max_val);
+            for (size_t i = 0; i < data_.size(); i++)
+                data_[i] = dist(get_generator());
+        } else if constexpr (std::is_floating_point_v<T>) {
+            std::uniform_real_distribution<T> dist(min_val, max_val);
+            for (size_t i = 0; i < data_.size(); i++)
+                data_[i] = dist(get_generator());
+        } else {
+            static_assert(std::is_arithmetic_v<T>,
+                          "Random fill supported only for arithmetic types");
+        }
     }
 
     /**

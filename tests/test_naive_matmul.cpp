@@ -7,17 +7,7 @@
 
 TEST(MatrixMultiplyTest, LargeRandomMatrixTimesIdentity) {
     const int size = 1000;
-
-    std::mt19937 gen(42);
-    std::uniform_real_distribution<float> dist(-100.0, 100.0);
-
-    Matrix<float> A(size, size);
-    for (int i = 0; i < size; ++i) {
-        for (int j = 0; j < size; ++j) {
-            A[i][j] = dist(gen);
-        }
-    }
-
+    Matrix<float> A(size, size, -100.0f, 100.0f);
     Matrix<float> I = Matrix<float>::eye(size);
     Matrix<float> result = naive_multiply(A, I);
 
