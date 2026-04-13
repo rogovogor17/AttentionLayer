@@ -35,7 +35,7 @@ void softmax_sequence(T* data, int size) {
     if (size <= 0)
         throw std::invalid_argument("Iterators of object sequence incorrect");
 
-    T sum = 0.0;
+    T sum = 0;
     for (int i = 0; i < size; i++) {
         data[i] = std::exp(data[i]);
         sum += data[i];
@@ -75,11 +75,15 @@ Tensor3D<T> online_softmax(Tensor3D<T>& A, const Tensor3D<T>& B) {
     Tensor3D<T> result(A.nbatch(), A.nrows(), B.ncols());
     for (int b = 0; b < A.nbatch(); b++) {
         for (int i = 0; i < A.nrows(); i++) {
-            softmax_sequence(&A[b][i][0], A.ncols());
+            T sum = T{};
             for (int k = 0; k < A.ncols(); k++) {
+                T& A_bik = A[b][i][k];
+                A_bik = std::exp(A_bik);
+                sum += A_bik;
                 for (int j = 0; j < B.ncols(); j++)
-                    result[b][i][j] += A[b][i][k] * B[b][k][j];
+                    result[b][i][j] += A_bik * B[b][k][j];
             }
+            for (int j = 0; j < B.ncols(); j++) result[b][i][j] /= sum;
         }
     }
 
