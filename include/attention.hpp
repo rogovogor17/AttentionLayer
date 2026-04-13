@@ -58,39 +58,6 @@ Tensor3D<T>& softmax(Tensor3D<T>& A) {
 }
 
 /**
- * @brief Compute Online Softmax
- * @return softmax(A) * B;
- */
-template <typename T>
-Tensor3D<T> online_softmax(Tensor3D<T>& A, const Tensor3D<T>& B) {
-    if (A.nbatch() != B.nbatch()) {
-        throw std::invalid_argument(
-            "Batch sizes must match for tensor multiplication");
-    }
-    if (A.ncols() != B.nrows()) {
-        throw std::invalid_argument(
-            "Inner dimensions must match for multiplication");
-    }
-
-    Tensor3D<T> result(A.nbatch(), A.nrows(), B.ncols());
-    for (int b = 0; b < A.nbatch(); b++) {
-        for (int i = 0; i < A.nrows(); i++) {
-            T sum = T{};
-            for (int k = 0; k < A.ncols(); k++) {
-                T& A_bik = A[b][i][k];
-                A_bik = std::exp(A_bik);
-                sum += A_bik;
-                for (int j = 0; j < B.ncols(); j++)
-                    result[b][i][j] += A_bik * B[b][k][j];
-            }
-            for (int j = 0; j < B.ncols(); j++) result[b][i][j] /= sum;
-        }
-    }
-
-    return result;
-}
-
-/**
  * @brief Compute Scaled Dot-Product Attention.
  *
  * Mathematical expression:
@@ -116,15 +83,43 @@ Tensor3D<T> attention_with_matmul(const Tensor3D<T>& Q, const Tensor3D<T>& K,
 
 /**
  * @brief Compute Scaled Dot-Product Attention.
- * @details The same as attention_with_matmul, but use online_softmax function
+ * @details Attention without intermediate Tensor
  * instead of softmax
  */
 template <typename T>
 Tensor3D<T> attention_online(const Tensor3D<T>& Q, const Tensor3D<T>& K,
-                             const Tensor3D<T>& V, MatMulType matmul_type) {
-    K.transpose();
-    Tensor3D<T> A = tensorMul(Q, K, matmul_type);
-    A *= static_cast<T>(1.0 / std::sqrt(Q.ncols()));
-    Tensor3D<T> result = online_softmax(A, V);
+                             const Tensor3D<T>& V) {
+    int batch = Q.nbatch();
+    int seq_q = Q.nrows();
+    int seq_k = K.nrows();
+    int d_k = Q.ncols();
+    int d_v = V.ncols();
+
+    Tensor3D<T> result(batch, seq_q, d_v);
+    T scale = static_cast<T>(1.0 / std::sqrt(d_k));
+
+    for (int b = 0; b < batch; b++) {
+        for (int i = 0; i < seq_q; i++) {
+            T sum = T{};
+            std::vector<T> row(d_v, T{});
+            const T* q_row = &Q[b][i][0];
+            for (int k = 0; k < seq_k; k++) {
+                T score = 0;
+                const T* k_row = &K[b][k][0];
+
+                for (int j = 0; j < d_k; j++) score += q_row[j] * k_row[j];
+
+                score = std::exp(score * scale);
+                sum += score;
+                const T* v_row = &V[b][k][0];
+
+                for (int j = 0; j < d_v; j++) row[j] += score * v_row[j];
+            }
+
+            T* result_row = &result[b][i][0];
+            for (int j = 0; j < d_v; j++) result_row[j] = row[j] / sum;
+        }
+    }
+
     return result;
 }
