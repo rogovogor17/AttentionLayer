@@ -5,9 +5,8 @@
 #include "tensor3d.hpp"
 
 /*TODO:
-1. SIMD
-2. Readme
-3. Gitlab
+1. Readme
+2. Gitlab
 */
 
 int main() {
@@ -22,7 +21,8 @@ int main() {
     Tensor3D<float> V(batch, seq_k, d_v, -2.0f, 2.0f);
     V.dump(log);
 
-    Tensor3D<float> result = attention_with_matmul(Q, K, V, CACHE_OPTIMIZED);
+    Tensor3D<float> result = attention_with_matmul(Q, K, V, SIMD);
+    result.dump(log);
 
     return 0;
 }

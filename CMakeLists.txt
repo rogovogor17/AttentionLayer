@@ -11,7 +11,8 @@ set(FLAGS -DDEBUG -O0 -fsanitize=address,alignment -Wall -Wextra -Wfloat-equal
 	-Wpacked -Wunused -fsized-deallocation
 	-Wmissing-declarations -Wchar-subscripts -Wempty-body -Winline -Wshadow
 	-Wswitch-default -Wundef -Wunreachable-code -Wvariadic-macros
-	-fPIE -fno-omit-frame-pointer -Werror=vla)
+	-fPIE -fno-omit-frame-pointer -Werror=vla
+	-march=native)
 
 find_program(IWYU_PATH NAMES include-what-you-use iwyu)
 if(IWYU_PATH)

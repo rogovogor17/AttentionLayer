@@ -11,12 +11,7 @@ TEST(MatrixMultiplyTest, LargeRandomMatrixTimesIdentity) {
     Matrix<float> I = Matrix<float>::eye(size);
     Matrix<float> result = naive_multiply(A, I);
 
-    for (int i = 0; i < size; ++i) {
-        for (int j = 0; j < size; ++j) {
-            EXPECT_FLOAT_EQ(result[i][j], A[i][j])
-                << "Mismatch at (" << i << ", " << j << ")";
-        }
-    }
+    EXPECT_EQ(1, A.isApprox(result));
 }
 
 int main(int argc, char** argv) {

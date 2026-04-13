@@ -50,7 +50,7 @@ class Tensor3D {
      * @throws std::invalid_argument If any dimension <= 0
      */
     Tensor3D(int batch, int rows, int cols, T val = T{})
-        : batch_(batch), rows_(rows), cols_(cols) {
+        : batch_(batch), rows_(rows), cols_(cols), data_() {
         if (batch <= 0 || rows <= 0 || cols <= 0)
             throw std::invalid_argument("Tensor dimensions must be positive");
 
@@ -91,7 +91,7 @@ class Tensor3D {
      * @param max_val Maximum random value (inclusive)
      */
     Tensor3D(int batch, int rows, int cols, T min_val, T max_val)
-        : batch_(batch), rows_(rows), cols_(cols) {
+        : batch_(batch), rows_(rows), cols_(cols), data_() {
         if (batch <= 0 || rows <= 0 || cols <= 0)
             throw std::invalid_argument("Tensor dimensions must be positive");
 

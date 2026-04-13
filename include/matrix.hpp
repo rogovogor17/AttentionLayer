@@ -20,16 +20,16 @@
 
 #if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || \
     defined(_M_IX86)
-#if defined(__AVX2__) || defined(__AVX__) || defined(__SSE4_2__) || \
-    defined(__SSE3__) || defined(__SSE2__)
-#define X86_SIMD_AVAILABLE 1
-#include <immintrin.h>
-#include <x86intrin.h>
+    #if defined(__AVX2__) || defined(__AVX__) || defined(__SSE4_2__) || \
+        defined(__SSE3__) || defined(__SSE2__)
+        #define X86_SIMD_AVAILABLE 1
+        #include <immintrin.h>
+        #include <x86intrin.h>
+    #else
+        #define X86_SIMD_AVAILABLE 0
+    #endif
 #else
-#define X86_SIMD_AVAILABLE 0
-#endif
-#else
-#define X86_SIMD_AVAILABLE 0
+    #define X86_SIMD_AVAILABLE 0
 #endif
 
 #include <stddef.h>
@@ -37,6 +37,7 @@
 #include <chrono>
 #include <cmath>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <iterator>
 #include <limits>
@@ -84,7 +85,7 @@ class Matrix {
         }
 
        public:
-        ProxyRow(T* row, int size) : row_(row), size_(size) {};
+        ProxyRow(T* row, int size) : row_(row), size_(size){};
         const T& operator[](int n) const { return at(n); }
         T& operator[](int n) { return at(n); }
     };
@@ -368,6 +369,35 @@ Matrix<T> cached_multiply(const Matrix<T>& A, const Matrix<T>& B) {
     return C;
 }
 
+#if X86_SIMD_AVAILABLE
+template <typename T>
+struct simd_traits;
+
+template <>
+struct simd_traits<double> {
+    using vec_type = __m256d;
+    static constexpr int size = 4;
+    static vec_type set1(double val) { return _mm256_set1_pd(val); }
+    static vec_type load(const double* ptr) { return _mm256_loadu_pd(ptr); }
+    static void store(double* ptr, vec_type val) { _mm256_storeu_pd(ptr, val); }
+    static vec_type fmadd(vec_type a, vec_type b, vec_type c) {
+        return _mm256_fmadd_pd(a, b, c);
+    }
+};
+
+template <>
+struct simd_traits<float> {
+    using vec_type = __m256;
+    static constexpr int size = 8;
+    static vec_type set1(float val) { return _mm256_set1_ps(val); }
+    static vec_type load(const float* ptr) { return _mm256_loadu_ps(ptr); }
+    static void store(float* ptr, vec_type val) { _mm256_storeu_ps(ptr, val); }
+    static vec_type fmadd(vec_type a, vec_type b, vec_type c) {
+        return _mm256_fmadd_ps(a, b, c);
+    }
+};
+#endif
+
 /**
  * @brief Performs Single Instruction, Multiple Data (SIMD) matrix
  * multiplication.
@@ -387,16 +417,26 @@ Matrix<T> simd_multiply(const Matrix<T>& A, const Matrix<T>& B) {
 #if X86_SIMD_AVAILABLE
     if (A.ncols() != B.nrows())
         throw std::invalid_argument("Invalid matrixes for multiplying");
+
     Matrix<T> C(A.nrows(), B.ncols());
+    using traits = simd_traits<T>;
+    constexpr int simd_size = traits::size;
 
     for (int i = 0; i < C.nrows(); i++) {
         for (int k = 0; k < A.ncols(); k++) {
-            __m256d a = _mm256_set1_pd(A[i][k]);
-            for (int j = 0; j < C.ncols(); j += 4) {
-                __m256d b = _mm256_loadu_pd(&B[k][j]);
-                __m256d c = _mm256_loadu_pd(&C[i][j]);
-                c = _mm256_fmadd_pd(a, b, c);
-                _mm256_storeu_pd(&C[i][j], c);
+            auto a = traits::set1(A[i][k]);
+            int j = 0;
+            int full_simd_end = (C.ncols() / simd_size) * simd_size;
+
+            for (; j < full_simd_end; j += simd_size) {
+                auto b = traits::load(&B[k][j]);
+                auto c = traits::load(&C[i][j]);
+                c = traits::fmadd(a, b, c);
+                traits::store(&C[i][j], c);
+            }
+
+            for (; j < C.ncols(); j++) {
+                C[i][j] += A[i][k] * B[k][j];
             }
         }
     }
