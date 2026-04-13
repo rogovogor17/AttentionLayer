@@ -18,7 +18,20 @@
 
 #pragma once
 
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || \
+    defined(_M_IX86)
+#if defined(__AVX2__) || defined(__AVX__) || defined(__SSE4_2__) || \
+    defined(__SSE3__) || defined(__SSE2__)
+#define X86_SIMD_AVAILABLE 1
 #include <immintrin.h>
+#include <x86intrin.h>
+#else
+#define X86_SIMD_AVAILABLE 0
+#endif
+#else
+#define X86_SIMD_AVAILABLE 0
+#endif
+
 #include <stddef.h>
 
 #include <chrono>
@@ -364,10 +377,14 @@ Matrix<T> cached_multiply(const Matrix<T>& A, const Matrix<T>& B) {
  * @param B Right matrix (k × n)
  * @return Matrix<T> Result matrix C (m × n)
  *
+ * @details The function has architecture dependencies; if the architecture does
+ * not support SIMD instructions, the function is equivalent to cached_multiply
+ *
  * @throws std::invalid_argument If A.ncols() != B.nrows()
  */
 template <typename T>
 Matrix<T> simd_multiply(const Matrix<T>& A, const Matrix<T>& B) {
+#if X86_SIMD_AVAILABLE
     if (A.ncols() != B.nrows())
         throw std::invalid_argument("Invalid matrixes for multiplying");
     Matrix<T> C(A.nrows(), B.ncols());
@@ -385,6 +402,10 @@ Matrix<T> simd_multiply(const Matrix<T>& A, const Matrix<T>& B) {
     }
 
     return C;
+#else
+    Matrix<T> C = cached_multiply(A, B);
+    return C;
+#endif
 }
 
 /**
