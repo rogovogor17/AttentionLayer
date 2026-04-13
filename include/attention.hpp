@@ -16,18 +16,18 @@
  * @brief Compute Softmax function with area iterators
  * @return Result of sequence softmax operation: probability distribution
  */
-template <typename T, typename It>
-void softmax_sequence(It begin, It end) {
-    if (std::distance(begin, end) <= 0)
+template <typename T>
+void softmax_sequence(T* data, int size) {
+    if (size <= 0)
         throw std::invalid_argument("Iterators of object sequence incorrect");
 
     T sum = 0.0;
-    for (It it = begin; it != end; it++) {
-        *it = std::exp(*it);
-        sum += *it;
+    for (int i = 0; i < size; i++) {
+        data[i] = std::exp(data[i]);
+        sum += data[i];
     }
 
-    for (It it = begin; it != end; it++) *it /= sum;
+    for (int i = 0; i < size; i++) data[i] /= sum;
 }
 
 /**
@@ -37,6 +37,10 @@ void softmax_sequence(It begin, It end) {
 template <typename T>
 Tensor3D<T> softmax(const Tensor3D<T>& A) {
     Tensor3D<T> result = A;
+    for (int b = 0; b < result.nbatch(); b++) {
+        for (int i = 0; i < result.nrows(); i++)
+            softmax_sequence(&result[b][i][0], result.ncols());
+    }
     return result;
 }
 
