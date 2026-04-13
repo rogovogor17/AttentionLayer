@@ -257,7 +257,8 @@ Matrix<T> naive_multiply(const Matrix<T>& A, const Matrix<T>& B) {
  * @throws std::invalid_argument If A.ncols() != B.nrows()
  */
 template <typename T>
-Matrix<T> cached_multiply(const Matrix<T>& A, const Matrix<T>& B, int bs = 32) {
+Matrix<T> cached_multiply(const Matrix<T>& A, const Matrix<T>& B) {
+    const int bs = 32;
     if (A.ncols() != B.nrows())
         throw std::invalid_argument("Invalid matrix sizes");
 
@@ -280,4 +281,34 @@ Matrix<T> cached_multiply(const Matrix<T>& A, const Matrix<T>& B, int bs = 32) {
     }
 
     return C;
+}
+
+/**
+ * @enum MatMulType
+ * @brief All available types of Matrix multiplication
+ */
+enum MatMulType { NAIVE, CACHE_OPTIMIZED, SIMD };
+
+/**
+ * @brief Get matmul function by MatMulType
+ * @return std::function<...> Function of Matrix multiplication
+ * @throws std::invalid_argument If type is not match with available MatMulType
+ */
+template <typename T>
+std::function<Matrix<T>(const Matrix<T>&, const Matrix<T>&)> getMatmul(
+    MatMulType type) {
+    std::function<Matrix<T>(const Matrix<T>&, const Matrix<T>&)> matmul;
+    switch (type) {
+        case NAIVE: {
+            matmul = naive_multiply<T>;
+            break;
+        }
+        case CACHE_OPTIMIZED: {
+            matmul = cached_multiply<T>;
+            break;
+        }
+        default:
+            throw std::invalid_argument("Invalid matmul operation");
+    }
+    return matmul;
 }

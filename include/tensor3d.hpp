@@ -8,11 +8,12 @@
  *
  * Usage Example:
  * @code{.cpp}
- * Tensor3D<float> Q(32, 8, 64);
- * Tensor3D<float> K(32, 16, 64);
- * Tensor3D<float> V(32, 16, 32);
  * std::ofstream log("log.log");
+ * Tensor3D<float> Q(8, 3, 3, -100.0f, 100.0f);
+ * Tensor3D<float> I = Tensor3D<float>::eye(8, 3);
  * Q.dump(log);
+ * Tensor3D<float> A = tensorMul(Q, I, NAIVE);
+ * A.dump(log);
  * @endcode
  */
 
@@ -110,14 +111,64 @@ class Tensor3D {
         for (auto& mat : data_) mat.fill_random(min_val, max_val);
     }
 
+    /**
+     * @brief Create identity tensor (each matrix is identity)
+     * @param size Matrix size (rows = cols = size)
+     * @return Tensor with identity matrices
+     */
+    static Tensor3D<T> eye(int batch, int size) {
+        Tensor3D<T> tensor(batch, size, size);
+        for (int b = 0; b < batch; b++) tensor[b] = Matrix<T>::eye(size);
+        return tensor;
+    }
+
+    /**
+     * @brief Access matrix by batch index
+     * @throws std::out_of_range If index is invalid
+     */
+    Matrix<T>& operator[](int b) {
+        if (b < 0 || b >= batch_) {
+            throw std::out_of_range("Batch index out of range");
+        }
+        return data_[static_cast<size_t>(b)];
+    }
+
+    /**
+     * @brief Const access matrix by batch index
+     * @throws std::out_of_range If index is invalid
+     */
+    const Matrix<T>& operator[](int b) const {
+        if (b < 0 || b >= batch_) {
+            throw std::out_of_range("Batch index out of range");
+        }
+        return data_[static_cast<size_t>(b)];
+    }
+
+    /** @brief Access individual element */
+    T& at(int b, int i, int j) { return (*this)[b][i][j]; }
+
+    /** @brief Const access individual element */
+    const T& at(int b, int i, int j) const { return (*this)[b][i][j]; }
+
+    /**
+     * @brief Transpose last two dimensions (batch-wise matrix transpose)
+     * @return New tensor with transposed matrices
+     */
+    Tensor3D<T> transpose() const {
+        Tensor3D<T> result(batch_, cols_, rows_);
+        for (int b = 0; b < batch_; b++)
+            result[b] = data_[static_cast<size_t>(b)].transpose();
+        return result;
+    }
+
     /** @brief Get amount of Matrix in Tensor3D */
-    int batch() const noexcept { return batch_; }
+    int nbatch() const noexcept { return batch_; }
 
     /** @brief Get amount of each Matrix rows in Tensor3D */
-    int rows() const noexcept { return rows_; }
+    int nrows() const noexcept { return rows_; }
 
     /** @brief Get amount of each Matrix columns in Tensor3D*/
-    int cols() const noexcept { return cols_; }
+    int ncols() const noexcept { return cols_; }
 
     /** @brief Dump tensor to ostream */
     void dump(std::ostream& os = std::cout) const {
@@ -130,3 +181,27 @@ class Tensor3D {
         }
     }
 };
+
+/**
+ * @brief Matrix multiplication along last two dimensions
+ * @throws std::invalid_argument If batch sizes mismatch or inner dimensions
+ * mismatch
+ */
+template <typename T>
+Tensor3D<T> tensorMul(const Tensor3D<T>& A, const Tensor3D<T>& B,
+                      MatMulType type) {
+    if (A.nbatch() != B.nbatch()) {
+        throw std::invalid_argument(
+            "Batch sizes must match for tensor multiplication");
+    }
+    if (A.ncols() != B.nrows()) {
+        throw std::invalid_argument(
+            "Inner dimensions must match for multiplication");
+    }
+
+    Tensor3D<T> result(A.nbatch(), A.nrows(), B.ncols());
+    std::function<Matrix<T>(const Matrix<T>&, const Matrix<T>&)> matmul =
+        getMatmul<T>(type);
+    for (int b = 0; b < A.nbatch(); b++) result[b] = matmul(A[b], B[b]);
+    return result;
+}

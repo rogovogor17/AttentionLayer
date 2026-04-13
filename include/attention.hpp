@@ -12,8 +12,7 @@
 
 #include "tensor3d.hpp"
 
-enum MatMulType { NAIVE, CACHE_OPTIMIZED, SIMD };
-
 template <typename T>
 Tensor3D<T> attention_with_matmul(const Tensor3D<T>& Q, const Tensor3D<T>& K,
-                                  const Tensor3D<T>& V, MatMulType matmul_type);
+                                  const Tensor3D<T>& V,
+                                  MatMulType matmul_type) {}
