@@ -105,22 +105,22 @@ Tensor3D<T> attention_with_matmul(const Tensor3D<T>& Q, const Tensor3D<T>& K,
     K.transpose();
     Tensor3D<T> A = tensorMul(Q, K, matmul_type);
     A *= static_cast<T>(1.0 / std::sqrt(Q.ncols()));
-    Tensor3D<T> result = online_softmax(A, V);
+    softmax(A);
+    Tensor3D<T> result = tensorMul(A, V, matmul_type);
     return result;
 }
 
 /**
  * @brief Compute Scaled Dot-Product Attention.
- * @details The same as attention_with_matmul, but use softmax function instead
- * of online_softmax
+ * @details The same as attention_with_matmul, but use online_softmax function
+ * instead of softmax
  */
 template <typename T>
-Tensor3D<T> attention(const Tensor3D<T>& Q, const Tensor3D<T>& K,
-                      const Tensor3D<T>& V, MatMulType matmul_type) {
+Tensor3D<T> attention_online(const Tensor3D<T>& Q, const Tensor3D<T>& K,
+                             const Tensor3D<T>& V, MatMulType matmul_type) {
     K.transpose();
     Tensor3D<T> A = tensorMul(Q, K, matmul_type);
     A *= static_cast<T>(1.0 / std::sqrt(Q.ncols()));
-    softmax(A);
-    Tensor3D<T> result = tensorMul(A, V, matmul_type);
+    Tensor3D<T> result = online_softmax(A, V);
     return result;
 }

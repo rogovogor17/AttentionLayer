@@ -18,7 +18,7 @@ static void BM_Attention_Softmax(benchmark::State& state) {
     CreateTensors(Q, K, V);
 
     for (auto _ : state) {
-        auto result = attention(Q, K, V, CACHE_OPTIMIZED);
+        auto result = attention_with_matmul(Q, K, V, CACHE_OPTIMIZED);
         benchmark::DoNotOptimize(result);
     }
 }
@@ -29,7 +29,7 @@ static void BM_Attention_OnlineSoftmax(benchmark::State& state) {
     CreateTensors(Q, K, V);
 
     for (auto _ : state) {
-        auto result = attention_with_matmul(Q, K, V, CACHE_OPTIMIZED);
+        auto result = attention_online(Q, K, V, CACHE_OPTIMIZED);
         benchmark::DoNotOptimize(result);
     }
 }
