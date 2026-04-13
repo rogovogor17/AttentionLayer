@@ -1,8 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <chrono>
-#include <random>
-
 #include "matrix.hpp"
 
 TEST(MatrixMultiplyTest, LargeRandomMatrixTimesIdentity) {
