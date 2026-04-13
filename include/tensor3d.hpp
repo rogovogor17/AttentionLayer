@@ -208,13 +208,23 @@ class Tensor3D {
     const T& at(int b, int i, int j) const { return (*this)[b][i][j]; }
 
     /**
-     * @brief Transpose last two dimensions (batch-wise matrix transpose)
-     * @return New tensor with transposed matrices
+     * @brief Transpose tensor in-place
+     * @return Reference to this tensor
      */
-    Tensor3D<T> transpose() const {
-        Tensor3D<T> result(batch_, cols_, rows_);
+    Tensor3D<T>& transpose() & {
         for (int b = 0; b < batch_; b++)
-            result[b] = data_[static_cast<size_t>(b)].transpose();
+            data_[static_cast<size_t>(b)].transpose();
+        std::swap(rows_, cols_);
+        return *this;
+    }
+
+    /**
+     * @brief Transpose for const objects
+     * @return New transposed tensor
+     */
+    Tensor3D<T> transpose() const& {
+        Tensor3D<T> result = *this;
+        result.transpose();
         return result;
     }
 
