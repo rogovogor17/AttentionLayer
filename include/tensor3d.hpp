@@ -13,7 +13,8 @@
  * Tensor3D<float> I = Tensor3D<float>::eye(8, 3);
  * Q.dump(log);
  * Tensor3D<float> A = tensorMul(Q, I, NAIVE);
- * A.dump(log);
+ * Tensor3D<float> B = tensorMul(Q, I, CACHE_OPTIMIZED);
+ * std::cout << (A.isApprox(B) ? "Success!" : "Failed!") << std::endl;
  * @endcode
  */
 
@@ -144,6 +145,49 @@ class Tensor3D {
         return data_[static_cast<size_t>(b)];
     }
 
+    /**
+     * @brief Equality operator for tensors
+     * @param other Tensor to compare with
+     * @return true if tensors have same dimensions and all matrices equal
+     */
+    bool operator==(const Tensor3D<T>& other) const {
+        if (batch_ != other.batch_ || rows_ != other.rows_ ||
+            cols_ != other.cols_)
+            return false;
+
+        for (int b = 0; b < batch_; b++) {
+            if (data_[static_cast<size_t>(b)] !=
+                other.data_[static_cast<size_t>(b)])
+                return false;
+        }
+        return true;
+    }
+
+    /** @brief Inequality operator for tensors */
+    bool operator!=(const Tensor3D<T>& other) const {
+        return !(*this == other);
+    }
+
+    /**
+     * @brief Equality with tolerance (for floating point types)
+     * @param other Tensor to compare with
+     * @param eps Tolerance for comparison
+     * @return true if tensors are approximately equal within tolerance
+     */
+    bool isApprox(const Tensor3D<T>& other,
+                  T eps = Matrix<T>::default_eps()) const {
+        if (batch_ != other.batch_ || rows_ != other.rows_ ||
+            cols_ != other.cols_)
+            return false;
+
+        for (int b = 0; b < batch_; b++) {
+            if (!data_[static_cast<size_t>(b)].isApprox(
+                    other.data_[static_cast<size_t>(b)], eps))
+                return false;
+        }
+        return true;
+    }
+
     /** @brief Access individual element */
     T& at(int b, int i, int j) { return (*this)[b][i][j]; }
 
@@ -189,7 +233,7 @@ class Tensor3D {
  */
 template <typename T>
 Tensor3D<T> tensorMul(const Tensor3D<T>& A, const Tensor3D<T>& B,
-                      MatMulType type) {
+                      MatMulType type = CACHE_OPTIMIZED) {
     if (A.nbatch() != B.nbatch()) {
         throw std::invalid_argument(
             "Batch sizes must match for tensor multiplication");

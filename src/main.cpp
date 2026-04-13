@@ -1,4 +1,5 @@
 #include <fstream>
+#include <iostream>
 
 #include "matrix.hpp"
 #include "tensor3d.hpp"
@@ -15,6 +16,8 @@ int main() {
 
     Tensor3D<float> B = tensorMul(Q, I, CACHE_OPTIMIZED);
     B.dump(log);
+
+    std::cout << (A.isApprox(B) ? "Success!" : "Failed!") << std::endl;
 
     return 0;
 }

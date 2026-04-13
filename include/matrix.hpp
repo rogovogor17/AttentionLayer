@@ -21,9 +21,11 @@
 #include <stddef.h>
 
 #include <chrono>
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <random>
 #include <stdexcept>
 #include <vector>
@@ -179,6 +181,53 @@ class Matrix {
 
     ProxyRow operator[](int n) { return at_row(n); }
     const ProxyRow operator[](int n) const { return at_row(n); }
+
+    /**
+     * @brief Equality operator
+     * @param other Matrix to compare with
+     * @return true if matrices have same dimensions and all elements equal
+     */
+    bool operator==(const Matrix<T>& other) const {
+        if (rows_ != other.rows_ || cols_ != other.cols_) return false;
+
+        for (size_t i = 0; i < data_.size(); i++) {
+            if (data_[i] != other.data_[i]) return false;
+        }
+        return true;
+    }
+
+    /**
+     * @brief Inequality operator
+     * @param other Matrix to compare with
+     * @return true if matrices are different
+     */
+    bool operator!=(const Matrix<T>& other) const { return !(*this == other); }
+
+    /** @brief Default epsilons values for different Matrix types */
+    static constexpr T default_eps() {
+        if constexpr (std::is_same_v<T, float>) {
+            return std::numeric_limits<float>::epsilon();
+        } else if constexpr (std::is_same_v<T, double>) {
+            return std::numeric_limits<double>::epsilon();
+        } else {
+            return T{0};
+        }
+    }
+
+    /**
+     * @brief Equality with tolerance (for floating point types)
+     * @param other Matrix to compare with
+     * @param eps Tolerance for comparison
+     * @return true if matrices are approximately equal within tolerance
+     */
+    bool isApprox(const Matrix<T>& other, T eps = default_eps()) const {
+        if (rows_ != other.rows_ || cols_ != other.cols_) return false;
+
+        for (size_t i = 0; i < data_.size(); i++) {
+            if (std::abs(data_[i] - other.data_[i]) > eps) return false;
+        }
+        return true;
+    }
 
     /** @brief Get amount of Matrix columns */
     int ncols() const noexcept { return static_cast<int>(cols_); }
