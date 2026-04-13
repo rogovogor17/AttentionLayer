@@ -432,6 +432,10 @@ std::function<Matrix<T>(const Matrix<T>&, const Matrix<T>&)> getMatmul(
             matmul = cached_multiply<T>;
             break;
         }
+        case SIMD: {
+            matmul = simd_multiply<T>;
+            break;
+        }
         default:
             throw std::invalid_argument("Invalid matmul operation");
     }
