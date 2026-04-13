@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['rang_0',['rang',['../class_tensor.html#a158c6e15ad61ef99bf75dd4777a17d98',1,'Tensor']]]
+  ['batch_5f_0',['batch_',['../class_tensor3_d.html#aa47efc88ea4fb8f299c23b29649db96a',1,'Tensor3D']]]
 ];

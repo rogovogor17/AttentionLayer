@@ -6,6 +6,20 @@
  *
  * @details This module provides Attention function with different matmul
  * realizations
+ *
+ * Usage Example:
+ * @code{.cpp}
+ * std::ofstream log("log.log");
+ * int batch = 2, seq_q = 2, seq_k = 1, d_k = 1, d_v = 2;
+ * Tensor3D<float> Q(batch, seq_q, d_k, -2.0f, 2.0f);
+ * Q.dump(log);
+ * Tensor3D<float> K(batch, seq_k, d_k, -2.0f, 2.0f);
+ * K.dump(log);
+ * Tensor3D<float> V(batch, seq_k, d_v, -2.0f, 2.0f);
+ * V.dump(log);
+ * Tensor3D<float> result = attention_with_matmul(Q, K, V, CACHE_OPTIMIZED);
+ * result.dump(log);
+ * @endcode
  */
 
 #pragma once
@@ -59,4 +73,12 @@ Tensor3D<T> softmax(const Tensor3D<T>& A) {
 template <typename T>
 Tensor3D<T> attention_with_matmul(const Tensor3D<T>& Q, const Tensor3D<T>& K,
                                   const Tensor3D<T>& V,
-                                  MatMulType matmul_type) {}
+                                  MatMulType matmul_type) {
+    K.transpose();
+    Tensor3D<float> A = tensorMul(Q, K, matmul_type);
+    A *= static_cast<float>(1 / std::sqrt(Q.ncols()));
+
+    Tensor3D<float> S = softmax(A);
+    Tensor3D<float> result = tensorMul(S, V, matmul_type);
+    return result;
+}

@@ -246,6 +246,7 @@ class Tensor3D {
             data_[static_cast<size_t>(b)].dump(os);
             if (b < batch_ - 1) os << std::endl;
         }
+        os << "====================" << std::endl;
     }
 };
 

@@ -1,4 +1,5 @@
 var annotated_dup =
 [
-    [ "Tensor", "class_tensor.html", "class_tensor" ]
+    [ "Matrix", "class_matrix.html", "class_matrix" ],
+    [ "Tensor3D", "class_tensor3_d.html", "class_tensor3_d" ]
 ];
