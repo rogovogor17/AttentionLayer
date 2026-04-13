@@ -49,12 +49,40 @@ void softmax_sequence(T* data, int size) {
  * @return Result of Softmax operation Tensor3D
  */
 template <typename T>
-Tensor3D<T> softmax(const Tensor3D<T>& A) {
-    Tensor3D<T> result = A;
-    for (int b = 0; b < result.nbatch(); b++) {
-        for (int i = 0; i < result.nrows(); i++)
-            softmax_sequence(&result[b][i][0], result.ncols());
+Tensor3D<T>& softmax(Tensor3D<T>& A) {
+    for (int b = 0; b < A.nbatch(); b++) {
+        for (int i = 0; i < A.nrows(); i++)
+            softmax_sequence(&A[b][i][0], A.ncols());
     }
+    return A;
+}
+
+/**
+ * @brief Compute Online Softmax
+ * @return softmax(A) * B;
+ */
+template <typename T>
+Tensor3D<T> online_softmax(Tensor3D<T>& A, const Tensor3D<T>& B) {
+    if (A.nbatch() != B.nbatch()) {
+        throw std::invalid_argument(
+            "Batch sizes must match for tensor multiplication");
+    }
+    if (A.ncols() != B.nrows()) {
+        throw std::invalid_argument(
+            "Inner dimensions must match for multiplication");
+    }
+
+    Tensor3D<T> result(A.nbatch(), A.nrows(), B.ncols());
+    for (int b = 0; b < A.nbatch(); b++) {
+        for (int i = 0; i < A.nrows(); i++) {
+            softmax_sequence(&A[b][i][0], A.ncols());
+            for (int k = 0; k < A.ncols(); k++) {
+                for (int j = 0; j < B.ncols(); j++)
+                    result[b][i][j] += A[b][i][k] * B[b][k][j];
+            }
+        }
+    }
+
     return result;
 }
 
@@ -76,9 +104,8 @@ Tensor3D<T> attention_with_matmul(const Tensor3D<T>& Q, const Tensor3D<T>& K,
                                   MatMulType matmul_type) {
     K.transpose();
     Tensor3D<float> A = tensorMul(Q, K, matmul_type);
-    A *= static_cast<float>(1 / std::sqrt(Q.ncols()));
+    A *= static_cast<T>(1.0 / std::sqrt(Q.ncols()));
+    A = online_softmax(A, V);
 
-    Tensor3D<float> S = softmax(A);
-    Tensor3D<float> result = tensorMul(S, V, matmul_type);
-    return result;
+    return A;
 }

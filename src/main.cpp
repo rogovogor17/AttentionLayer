@@ -4,6 +4,13 @@
 #include "matrix.hpp"
 #include "tensor3d.hpp"
 
+/*TODO:
+1. Online softmax
+2. SIMD
+3. Readme
+4. Gitlab
+*/
+
 int main() {
     std::ofstream log("log.log");
 
@@ -17,7 +24,6 @@ int main() {
     V.dump(log);
 
     Tensor3D<float> result = attention_with_matmul(Q, K, V, CACHE_OPTIMIZED);
-    result.dump(log);
 
     return 0;
 }
