@@ -229,6 +229,28 @@ class Matrix {
         return true;
     }
 
+    /**
+     * @brief Multiply matrix by scalar (matrix * scalar)
+     * @param scalar Scalar value to multiply by
+     * @return New matrix with each element multiplied by scalar
+     */
+    Matrix<T> operator*(T scalar) const {
+        Matrix<T> result(rows_, cols_);
+        for (size_t i = 0; i < data_.size(); i++)
+            result.data_[i] = data_[i] * scalar;
+        return result;
+    }
+
+    /**
+     * @brief Multiply matrix by scalar and assign (matrix *= scalar)
+     * @param scalar Scalar value to multiply by
+     * @return Reference to this matrix
+     */
+    Matrix<T>& operator*=(T scalar) {
+        for (size_t i = 0; i < data_.size(); i++) data_[i] *= scalar;
+        return *this;
+    }
+
     /** @brief Get amount of Matrix columns */
     int ncols() const noexcept { return static_cast<int>(cols_); }
 

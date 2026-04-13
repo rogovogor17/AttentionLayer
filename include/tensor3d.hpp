@@ -188,6 +188,19 @@ class Tensor3D {
         return true;
     }
 
+    /** @brief Scalar multiplication */
+    Tensor3D<T> operator*(T scalar) const {
+        Tensor3D<T> result(batch_, rows_, cols_);
+        for (int b = 0; b < batch_; b++) result[b] = data_[b] * scalar;
+        return result;
+    }
+
+    /** @brief Scalar multiplication and assign*/
+    Tensor3D<T>& operator*=(T scalar) {
+        for (size_t i = 0; i < data_.size(); i++) data_[i] *= scalar;
+        return *this;
+    }
+
     /** @brief Access individual element */
     T& at(int b, int i, int j) { return (*this)[b][i][j]; }
 
