@@ -5,10 +5,9 @@
 #include "tensor3d.hpp"
 
 /*TODO:
-1. Online softmax
-2. SIMD
-3. Readme
-4. Gitlab
+1. SIMD
+2. Readme
+3. Gitlab
 */
 
 int main() {

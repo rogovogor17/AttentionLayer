@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <immintrin.h>
 #include <stddef.h>
 
 #include <chrono>
@@ -347,6 +348,38 @@ Matrix<T> cached_multiply(const Matrix<T>& A, const Matrix<T>& B) {
                             C[i][j] += A_ik * Bt[j][k];
                     }
                 }
+            }
+        }
+    }
+
+    return C;
+}
+
+/**
+ * @brief Performs Single Instruction, Multiple Data (SIMD) matrix
+ * multiplication.
+ *
+ * @tparam T Matrix element type
+ * @param A Left matrix (m × k)
+ * @param B Right matrix (k × n)
+ * @return Matrix<T> Result matrix C (m × n)
+ *
+ * @throws std::invalid_argument If A.ncols() != B.nrows()
+ */
+template <typename T>
+Matrix<T> simd_multiply(const Matrix<T>& A, const Matrix<T>& B) {
+    if (A.ncols() != B.nrows())
+        throw std::invalid_argument("Invalid matrixes for multiplying");
+    Matrix<T> C(A.nrows(), B.ncols());
+
+    for (int i = 0; i < C.nrows(); i++) {
+        for (int k = 0; k < A.ncols(); k++) {
+            __m256d a = _mm256_set1_pd(A[i][k]);
+            for (int j = 0; j < C.ncols(); j += 4) {
+                __m256d b = _mm256_loadu_pd(&B[k][j]);
+                __m256d c = _mm256_loadu_pd(&C[i][j]);
+                c = _mm256_fmadd_pd(a, b, c);
+                _mm256_storeu_pd(&C[i][j], c);
             }
         }
     }
