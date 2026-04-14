@@ -4,11 +4,6 @@
 #include "matrix.hpp"
 #include "tensor3d.hpp"
 
-/*TODO:
-1. Readme
-2. Gitlab
-*/
-
 int main() {
     std::ofstream log("log.log");
 
@@ -21,7 +16,7 @@ int main() {
     Tensor3D<float> V(batch, seq_k, d_v, -2.0f, 2.0f);
     V.dump(log);
 
-    Tensor3D<float> result = attention_with_matmul(Q, K, V, SIMD);
+    Tensor3D<float> result = attention_with_matmul(Q, K, V, CACHE_OPTIMIZED);
     result.dump(log);
 
     return 0;

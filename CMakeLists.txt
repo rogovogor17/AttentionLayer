@@ -25,7 +25,4 @@ endif()
 
 add_subdirectory(src)
 add_subdirectory(tests)
-option(BUILD_BENCHMARKS "Build performance benchmarks" OFF)
-if(BUILD_BENCHMARKS)
-    add_subdirectory(benchmarks)
-endif()
+add_subdirectory(benchmarks)

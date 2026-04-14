@@ -76,9 +76,7 @@ Tensor3D<T> attention_with_matmul(const Tensor3D<T>& Q, const Tensor3D<T>& K,
     K.transpose();
     Tensor3D<T> A = tensorMul(Q, K, matmul_type);
     A *= static_cast<T>(1.0 / std::sqrt(Q.ncols()));
-    softmax(A);
-    Tensor3D<T> result = tensorMul(A, V, matmul_type);
-    return result;
+    return tensorMul(softmax(A), V, matmul_type);
 }
 
 /**
