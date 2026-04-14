@@ -45,6 +45,8 @@
 #include <stdexcept>
 #include <vector>
 
+#define BLOCK_SIZE 32
+
 /**
  * @class Matrix
  * @brief Main class for matrix
@@ -344,7 +346,7 @@ Matrix<T> naive_multiply(const Matrix<T>& A, const Matrix<T>& B) {
  */
 template <typename T>
 Matrix<T> cached_multiply(const Matrix<T>& A, const Matrix<T>& B) {
-    const int bs = 32;
+    const int bs = BLOCK_SIZE;
     if (A.ncols() != B.nrows())
         throw std::invalid_argument("Invalid matrix sizes");
 

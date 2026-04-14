@@ -19,9 +19,9 @@
 
 _["Attention Is All You Need" — Vaswani et al., NeurIPS 2017](./docs/Attention_is_all_you_need.pdf)_
 
-**[View Benchmark Results](#-benchmark-results)**
+**[View Benchmark Results](#benchmark-results)**
 
-[Getting Started](#-getting-started) • [Architecture](#-architecture) • [Implemented Methods](#-implemented-methods) • [Performance Analysis](#-performance-analysis)
+[Getting Started](#getting-started) • [Architecture](#architecture) • [Implemented Methods](#implemented-methods) • [Performance Analysis](#performance-analysis)
 
 </div>
 </div>
@@ -29,52 +29,49 @@ _["Attention Is All You Need" — Vaswani et al., NeurIPS 2017](./docs/Attention
 <details>
   <summary>Table of Contents</summary>
   <ol>
-    <li><a href="#-about-the-project">About The Project</a>
+    <li><a href="#about-the-project">About The Project</a>
       <ul>
         <li><a href="#mathematical-formulation">Mathematical Formulation</a></li>
         <li><a href="#key-features">Key Features</a></li>
       </ul>
     </li>
-    <li><a href="#-built-with">Built With</a></li>
-	<li><a href="#benchmarked-on">Benchmarked On</a></li>
-    <li><a href="#-getting-started">Getting Started</a>
+    <li><a href="#built-with">Built With</a></li>
+	  <li><a href="#benchmarked-on">Benchmarked On</a></li>
+    <li><a href="#getting-started">Getting Started</a>
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
         <li><a href="#installation">Installation</a></li>
         <li><a href="#building">Building</a></li>
       </ul>
     </li>
-    <li><a href="#-architecture">Architecture</a>
+    <li><a href="#architecture">Architecture</a>
       <ul>
         <li><a href="#class-hierarchy">Class Hierarchy</a></li>
         <li><a href="#module-structure">Module Structure</a></li>
       </ul>
     </li>
-    <li><a href="#-implemented-methods">Implemented Methods</a>
+    <li><a href="#implemented-methods">Implemented Methods</a>
       <ul>
         <li><a href="#matrix-multiplication-algorithms">Matrix Multiplication Algorithms</a></li>
         <li><a href="#attention-mechanisms">Attention Mechanisms</a></li>
       </ul>
     </li>
-    <li><a href="#-benchmark-results">Benchmark Results</a>
+    <li><a href="#testing">Testing</a></li>
+    <li><a href="#benchmark-results">Benchmark Results</a>
       <ul>
         <li><a href="#matrix-multiplication-performance">Matrix Multiplication Performance</a></li>
         <li><a href="#attention-performance">Attention Performance</a></li>
         <li><a href="#speedup-summary">Speedup Summary</a></li>
       </ul>
     </li>
-    <li><a href="#-testing">Testing</a></li>
-    <li><a href="#-performance-analysis">Performance Analysis</a>
+    <li><a href="#performance-analysis">Performance Analysis</a>
       <ul>
         <li><a href="#why-cache-optimization-matters">Why Cache Optimization Matters</a></li>
         <li><a href="#why-simd-matters">Why SIMD Matters</a></li>
-        <li><a href="#complexity-comparison">Complexity Comparison</a></li>
       </ul>
     </li>
-    <li><a href="#-roadmap">Roadmap</a></li>
-    <li><a href="#-references">References</a></li>
-    <li><a href="#-contact">Contact</a></li>
-    <li><a href="#-acknowledgments">Acknowledgments</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#references">References</a></li>
   </ol>
 </details>
 
@@ -101,15 +98,15 @@ This project implements the **Scaled Dot-Product Attention** mechanism in **C++1
 
 ### Key Features
 
-| Feature                    | Status   | Description                                |
-| -------------------------- | -------- | ------------------------------------------ |
-| **Naive MatMul**           | Complete | Classic triple-loop O(n³) implementation   |
-| **Cache-Optimized MatMul** | Complete | Blocked algorithm with 32×32 tiling        |
-| **SIMD-Vectorized MatMul** | Complete | AVX2/AVX intrinsics (8 floats / 4 doubles) |
-| **Standard Attention**     | Complete | Full matrix materialization with softmax   |
-| **Online Softmax**         | Complete | FlashAttention-like memory optimization    |
-| **Benchmarks**             | Complete | Google Benchmark integration               |
-| **Unit Testing**           | Complete | Google Test suite                          |
+| Feature                    | Description                                |
+| -------------------------- | ------------------------------------------ |
+| **Naive MatMul**           | Classic triple-loop O(n³) implementation   |
+| **Cache-Optimized MatMul** | Blocked algorithm with 32×32 tiling        |
+| **SIMD-Vectorized MatMul** | AVX2/AVX intrinsics (8 floats / 4 doubles) |
+| **Standard Attention**     | Full matrix materialization with softmax   |
+| **Online Softmax**         | FlashAttention-like memory optimization    |
+| **Benchmarks**             | Google Benchmark integration               |
+| **Unit Testing**           | Google Test suite                          |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -163,6 +160,8 @@ This project implements the **Scaled Dot-Product Attention** mechanism in **C++1
     <td>Ubuntu 24.04<br>GCC 13.3+, Clang 18+, with <code>-march=native -O3 -DNDEBUG</code></td>
   </tr>
 </table>
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ---
 
@@ -284,7 +283,7 @@ for (int i = 0; i < M; i++)
 Blocked algorithm exploiting temporal locality via loop tiling.
 
 ```cpp
-const int bs = 32;  // Fits in L1/L2 cache
+const int bs = BLOCK_SIZE;  //= 32; Fits in L1/L2 cache
 for (int ii = 0; ii < M; ii += bs)
     for (int jj = 0; jj < N; jj += bs)
         for (int kk = 0; kk < K; kk += bs)
@@ -394,6 +393,10 @@ for (int b = 0; b < batch; b++) {
 cd build && ctest --output-on-failure
 ```
 
+### Test results
+
+![Test results](imgs/tests.png "Test results")
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ---
@@ -415,18 +418,22 @@ cd build && ctest --output-on-failure
 
 ### Matrix Multiplication Performance
 
+![Matrix Multiplication Benchmark](imgs/bench_matmul.png "Matrix Multiplication Benchmark")
+
 ### Attention Performance
+
+![Softmax Benchmark](imgs/bench_softmax.png "Attention Softmax Benchmark")
+
+![Attention Benchmark](imgs/bench_attention.png "Attention MatMul Benchmark")
 
 ### Speedup Summary
 
-| Operation     | Naive → Cache | Cache → SIMD | Naive → SIMD | Online vs Cache |
-| ------------- | :-----------: | :----------: | :----------: | :-------------: |
-| **MatMul**    |     2.81×     |    2.07×     |    5.83×     |        —        |
-| **Attention** |     2.80×     |    2.06×     |    5.78×     |      2.65×      |
+| Operation     | Naive → Cache | Cache → SIMD | Naive → SIMD | Cache → Online | SIMD → Online |
+| ------------- | :-----------: | :----------: | :----------: | :------------: | :-----------: |
+| **MatMul**    |     3.23×     |    4.04×     |    13.05×    |       —        |       —       |
+| **Attention** |     3.28×     |    3.98×     |    13.08×    |     3.42×      |     0.84×     |
 
-<div align="center">
-  <img src="https://quickchart.io/chart?c={type:'bar',data:{labels:['Naive','Cache','SIMD','Online'],datasets:[{label:'Time (ms)',data:[732.5,261.3,126.7,98.4],backgroundColor:['#ef4444','#f59e0b','#10b981','#06b6d4']}]},options:{title:{display:true,text:'Attention Performance Comparison'}}}" alt="Performance Chart">
-</div>
+![Performance chart](imgs/line_chart_performance.png "Performance chart")
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -488,6 +495,7 @@ Modern CPUs can process multiple operations in one cycle:
   - [x] Performance analysis
 
 - [ ] **Phase 5: Future Enhancements**
+  - [ ] Online SIMD Attention
   - [ ] Multi-threading (OpenMP/TBB)
   - [ ] ARM NEON support (Apple Silicon)
   - [ ] Multi-Head Attention
@@ -506,6 +514,8 @@ Modern CPUs can process multiple operations in one cycle:
    - [arXiv:2205.14135](https://arxiv.org/abs/2205.14135)
 
 3. **Intel Intrinsics Guide** — [Intel.com](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/)
+
+4. **Best-README-Template** — [Github.com](https://github.com/othneildrew/Best-README-Template)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

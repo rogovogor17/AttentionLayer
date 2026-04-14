@@ -13,7 +13,7 @@ static void CreateTensors(Tensor3D<float>& A, Tensor3D<float>& B,
     C = C0;
 }
 
-static void BM_Attention_Softmax(benchmark::State& state) {
+static void BM_Attention_Cached(benchmark::State& state) {
     Tensor3D<float> Q, K, V;
     CreateTensors(Q, K, V);
 
@@ -22,7 +22,18 @@ static void BM_Attention_Softmax(benchmark::State& state) {
         benchmark::DoNotOptimize(result);
     }
 }
-BENCHMARK(BM_Attention_Softmax);
+BENCHMARK(BM_Attention_Cached);
+
+static void BM_Attention_SIMD(benchmark::State& state) {
+    Tensor3D<float> Q, K, V;
+    CreateTensors(Q, K, V);
+
+    for (auto _ : state) {
+        auto result = attention_with_matmul(Q, K, V, SIMD);
+        benchmark::DoNotOptimize(result);
+    }
+}
+BENCHMARK(BM_Attention_SIMD);
 
 static void BM_Attention_OnlineSoftmax(benchmark::State& state) {
     Tensor3D<float> Q, K, V;
